@@ -1,5 +1,4 @@
-# AirVision Backend Dependencies
-# Web Framework
+# Core
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 python-multipart==0.0.18
@@ -7,36 +6,27 @@ python-multipart==0.0.18
 # Database
 aiosqlite==0.20.0
 
-# Data Processing
+# Data Science
 pandas==2.2.3
-numpy==1.26.4
-
-# Machine Learning
+numpy==2.2.6
 scikit-learn==1.6.1
 xgboost==2.1.3
 joblib==1.4.2
 
-# API Calls & HTTP
+# HTTP
 httpx==0.28.1
-openaq==0.2.0
 
-# Authentication
+# Auth
 pyjwt==2.10.1
 bcrypt==4.2.1
 passlib[bcrypt]==1.7.4
 
-# Environment & Config
+# Config
 python-dotenv==1.0.1
 pydantic-settings==2.7.1
 
-# Scheduling
+# Scheduler
 apscheduler==3.10.4
 
-# Visualisation (for model evaluation plots)
-matplotlib==3.9.4
-
-# CORS
-starlette==0.41.3
-
-# Date handling
+# Utils
 python-dateutil==2.9.0
