@@ -27,6 +27,21 @@ async def lifespan(app: FastAPI):
     seed_cities()
     seed_quiz_data()
 
+    # Auto-collect data if database is empty
+    try:
+        from app.database import get_db_connection
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM air_quality_readings")
+        count = cursor.fetchone()[0]
+        conn.close()
+        if count == 0:
+            print("  Database empty — collecting data from OpenAQ...")
+            from app.services.data_collector import collect_latest_data
+            collect_latest_data()
+    except Exception as e:
+        print(f"  Data collection skipped: {e}")
+
     # Auto-generate forecasts
     try:
         from app.scheduler import generate_all_forecasts

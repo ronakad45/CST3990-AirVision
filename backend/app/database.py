@@ -198,6 +198,33 @@ def create_tables():
         )
     """)
 
+    # ─── LEADERBOARD TABLE ───
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS leaderboard (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_name     TEXT NOT NULL,
+            topic_id        INTEGER NOT NULL,
+            score           INTEGER NOT NULL,
+            total_questions INTEGER NOT NULL,
+            percentage      REAL NOT NULL,
+            points_earned   INTEGER DEFAULT 0,
+            time_taken_sec  INTEGER DEFAULT 0,
+            played_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # ─── LEADERBOARD TOTALS TABLE ───
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS leaderboard_totals (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_name     TEXT NOT NULL UNIQUE,
+            total_points    INTEGER DEFAULT 0,
+            quizzes_taken   INTEGER DEFAULT 0,
+            avg_score       REAL DEFAULT 0.0,
+            last_played     TIMESTAMP
+        )
+    """)
+
     # ─── INDEXES FOR PERFORMANCE ───
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_aq_city_time ON air_quality_readings(city_id, timestamp)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_weather_city_time ON weather_data(city_id, timestamp)")
