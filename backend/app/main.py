@@ -103,4 +103,6 @@ async def health_check():
 
 
 # Serve frontend files (MUST be last — catches all unmatched routes)
-app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
+import os
+frontend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "frontend")
+app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")

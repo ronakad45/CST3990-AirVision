@@ -2,33 +2,35 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
-dist/
-build/
 venv/
 .venv/
-*.egg
 
-# Environment
+# Environment (secrets - never push these)
 .env
-.env.local
 
-# Database
+# Database (will be recreated)
 *.db
 data/models/
 
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Node
-node_modules/
-dist/
-
 # Logs
 *.log
+
+# Temp files
+debug_api.py
+check_data.py
+fix_quiz.py
+fix_topics.py
+fix_submit.py
+export_data.py
+collect_more_data.py
+collect_extended.py
+add_leaderboard.py
+leaderboard.py
