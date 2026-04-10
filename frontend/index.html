@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirVision — Air Quality Prediction</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+    <div class="app-layout">
+
+        <!-- SIDEBAR -->
+        <nav class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon-sm">&#x1F32C;</div>
+                <div><h2>AIRVISION</h2><span class="brand-sub">Air Quality Predictor</span></div>
+            </div>
+            <div class="sidebar-nav">
+                <a :class="{ active: currentView === 'dashboard' }" @click="currentView='dashboard'"><span class="nav-icon">&#x25A0;</span> Dashboard</a>
+                <a :class="{ active: currentView === 'forecast' }" @click="currentView='forecast'"><span class="nav-icon">&#x25B6;</span> Forecast</a>
+                <a :class="{ active: currentView === 'compare' }" @click="currentView='compare'"><span class="nav-icon">&#x2261;</span> Compare Cities</a>
+                <a :class="{ active: currentView === 'trends' }" @click="currentView='trends'"><span class="nav-icon">&#x2197;</span> Trends</a>
+                <a :class="{ active: currentView === 'quiz' }" @click="currentView='quiz'"><span class="nav-icon">&#x270D;</span> Quiz & Learn</a>
+                <a :class="{ active: currentView === 'leaderboard' }" @click="currentView='leaderboard'"><span class="nav-icon">&#x1F3C6;</span> Leaderboard</a>
+            </div>
+        </nav>
+
+        <!-- MAIN -->
+        <main class="main-content">
+            <header class="topbar">
+                <h1 class="page-title">{{ pageTitle }}</h1>
+                <select v-model="selectedCity" class="city-select" @change="onCityChange">
+                    <option v-for="city in cities" :value="city">{{ city }}</option>
+                </select>
+            </header>
+
+            <div class="content-area">
+
+                <!-- ═══ DASHBOARD ═══ -->
+                <div v-if="currentView === 'dashboard'">
+                    <div class="dashboard-grid">
+                        <!-- AQI Card -->
+                        <div class="card aqi-card" :style="{ borderLeftColor: currentAQ.color }">
+                            <div class="aqi-header"><h3>Current Air Quality</h3><span class="city-badge">{{ selectedCity }}</span></div>
+                            <div class="aqi-body">
+                                <div class="aqi-gauge">
+                                    <div class="aqi-number" :style="{ color: currentAQ.color }">{{ currentAQ.aqi || '—' }}</div>
+                                    <div class="aqi-label" :style="{ backgroundColor: currentAQ.color }">{{ currentAQ.category || 'Loading...' }}</div>
+                                </div>
+                                <div class="aqi-details">
+                                    <p class="health-advisory">{{ currentAQ.health_advisory || 'Fetching...' }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Weather Card -->
+                        <div class="card weather-card" v-if="weather">
+                            <div class="aqi-header"><h3>Weather</h3><span class="city-badge">{{ selectedCity }}</span></div>
+                            <div class="weather-body">
+                                <img :src="weatherIcon" class="weather-icon" alt="weather">
+                                <div class="weather-temp">{{ weather.temperature }}°C</div>
+                                <div class="weather-desc">{{ weather.description }}</div>
+                                <div class="weather-details">
+                                    <span>Feels like {{ weather.feels_like }}°C</span>
+                                    <span>Humidity {{ weather.humidity }}%</span>
+                                    <span>Wind {{ weather.wind_speed }} m/s</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tomorrow Forecast -->
+                        <div v-if="todayForecast" class="card forecast-preview" :style="{ borderLeftColor: todayForecast.alert_color }">
+                            <div class="aqi-header"><h3>Tomorrow's Forecast</h3><span class="city-badge">{{ todayForecast.model_used }}</span></div>
+                            <div class="aqi-body">
+                                <div class="aqi-gauge">
+                                    <div class="aqi-number" :style="{ color: todayForecast.alert_color }">{{ todayForecast.predicted_aqi }}</div>
+                                    <div class="aqi-label" :style="{ backgroundColor: todayForecast.alert_color }">{{ todayForecast.alert_level }}</div>
+                                </div>
+                                <div class="aqi-details">
+                                    <p>PM2.5: <strong>{{ todayForecast.predicted_pm25 }} µg/m³</strong></p>
+                                    <p>Confidence: {{ todayForecast.confidence }}%</p>
+                                    <p class="aqi-timestamp">For: {{ todayForecast.forecast_date }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pollutants -->
+                        <div class="pollutant-grid">
+                            <div class="card pollutant-card" v-for="p in pollutantCards" :key="p.label">
+                                <div class="pollutant-name">{{ p.label }}</div>
+                                <div class="pollutant-value" :class="p.level">{{ p.value != null ? p.value.toFixed(1) : '—' }}</div>
+                                <div class="pollutant-unit">{{ p.unit }}</div>
+                            </div>
+                        </div>
+
+                        <!-- PM2.5 Chart -->
+                        <div class="card chart-card"><h3>Air Quality Trends — Historical Data</h3><canvas id="dashboardChart" height="280"></canvas></div>
+
+                        <!-- City Comparison Bar Chart -->
+                        <div class="card chart-card"><h3>Current AQI Across Cities</h3><canvas id="cityBarChart" height="250"></canvas></div>
+
+                        <!-- Model Performance -->
+                        <div class="card models-card">
+                            <h3>ML Model Performance</h3>
+                            <div class="model-list">
+                                <div class="model-item" v-for="m in modelMetrics" :key="m.model_name">
+                                    <div class="model-name">{{ m.model_name }} <span v-if="m.is_best" class="best-badge">BEST</span></div>
+                                    <div class="model-stats"><span>RMSE: {{ m.rmse }}</span><span>MAE: {{ m.mae }}</span><span>R²: {{ m.r_squared }}</span></div>
+                                    <div class="model-bar"><div class="model-bar-fill" :style="{ width: Math.max(m.r_squared*100, 5)+'%' }"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ FORECAST ═══ -->
+                <div v-if="currentView === 'forecast'">
+                    <div v-if="loading" class="loading-msg">Loading forecast...</div>
+                    <div v-if="forecast" class="card forecast-main" :style="{ borderLeftColor: forecast.alert_color }">
+                        <h3>Next-Day Forecast — {{ selectedCity }}</h3>
+                        <div class="forecast-body">
+                            <div class="forecast-aqi">
+                                <div class="forecast-number" :style="{ color: forecast.alert_color }">{{ forecast.predicted_aqi }}</div>
+                                <div class="forecast-category" :style="{ backgroundColor: forecast.alert_color }">{{ forecast.alert_level }}</div>
+                            </div>
+                            <div class="forecast-details">
+                                <div class="detail-row"><span>Predicted PM2.5</span><strong>{{ forecast.predicted_pm25 }} µg/m³</strong></div>
+                                <div class="detail-row"><span>Model</span><strong>{{ forecast.model_used }}</strong></div>
+                                <div class="detail-row"><span>Confidence</span><strong>{{ forecast.confidence }}%</strong></div>
+                                <div class="detail-row"><span>Date</span><strong>{{ forecast.forecast_date }}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="multiForecast.length" class="multi-forecast">
+                        <h3 class="section-title">5-Day Forecast</h3>
+                        <div class="multi-grid">
+                            <div class="card multi-card" v-for="f in multiForecast" :key="f.day" :style="{ borderTopColor: f.alert_color }">
+                                <div class="multi-date">{{ f.forecast_date }}</div>
+                                <div class="multi-aqi" :style="{ color: f.alert_color }">{{ f.predicted_aqi }}</div>
+                                <div class="multi-category" :style="{ backgroundColor: f.alert_color }">{{ f.alert_level }}</div>
+                                <div class="multi-pm25">PM2.5: {{ f.predicted_pm25 }}</div>
+                                <div class="multi-confidence">{{ f.confidence }}%</div>
+                            </div>
+                        </div>
+                        <div class="card" style="margin-top:20px;"><h3>Forecast Trend</h3><canvas id="forecastLineChart" height="250"></canvas></div>
+                    </div>
+                    <div v-if="!forecast && !loading" class="card" style="text-align:center;padding:40px;"><p>No forecast for {{ selectedCity }}.</p></div>
+                </div>
+
+                <!-- ═══ COMPARE ═══ -->
+                <div v-if="currentView === 'compare'">
+                    <div class="compare-controls">
+                        <label v-for="city in cities" :key="city" class="compare-checkbox"><input type="checkbox" :value="city" v-model="compareCities"> {{ city }}</label>
+                        <button class="btn-primary" @click="compareCitiesData" :disabled="compareCities.length < 2" style="width:auto;padding:10px 24px;">Compare</button>
+                    </div>
+                    <div v-if="compareResults.length" class="compare-grid">
+                        <div class="card compare-card" v-for="c in compareResults" :key="c.city" :style="{ borderTopColor: c.color }">
+                            <h3>{{ c.city }}</h3>
+                            <div class="compare-aqi" :style="{ color: c.color }">{{ c.aqi }}</div>
+                            <div class="compare-category" :style="{ backgroundColor: c.color }">{{ c.category }}</div>
+                            <div class="compare-pollutants">
+                                <div class="cp-row"><span>PM2.5</span><strong>{{ c.pm25 || '—' }}</strong></div>
+                                <div class="cp-row"><span>PM10</span><strong>{{ c.pm10 || '—' }}</strong></div>
+                                <div class="cp-row"><span>NO₂</span><strong>{{ c.no2 || '—' }}</strong></div>
+                                <div class="cp-row"><span>O₃</span><strong>{{ c.o3 || '—' }}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ TRENDS ═══ -->
+                <div v-if="currentView === 'trends'">
+                    <div class="trends-controls">
+                        <select v-model="trendDays" @change="loadTrends"><option :value="7">7 Days</option><option :value="30">30 Days</option><option :value="90">90 Days</option><option :value="365">1 Year</option></select>
+                    </div>
+                    <div class="card"><h3>{{ selectedCity }} — Air Quality Trends</h3><canvas id="trendsChart" height="350"></canvas></div>
+                    <div v-if="trendStats" class="trend-stats-grid">
+                        <div class="card stat-card"><div class="stat-label">Avg AQI</div><div class="stat-value">{{ trendStats.average_aqi }}</div></div>
+                        <div class="card stat-card"><div class="stat-label">Peak AQI</div><div class="stat-value danger">{{ trendStats.peak_aqi }}</div></div>
+                        <div class="card stat-card"><div class="stat-label">Min AQI</div><div class="stat-value success">{{ trendStats.min_aqi }}</div></div>
+                        <div class="card stat-card"><div class="stat-label">Readings</div><div class="stat-value">{{ trendStats.total_readings }}</div></div>
+                    </div>
+                </div>
+
+                <!-- ═══ QUIZ ═══ -->
+                <div v-if="currentView === 'quiz'">
+                    <!-- Name Prompt Modal -->
+                    <div v-if="showNamePrompt" class="modal-overlay" @click.self="showNamePrompt=false">
+                        <div class="modal-card">
+                            <h3>Enter Your Name</h3>
+                            <p>Your name will appear on the leaderboard.</p>
+                            <input type="text" v-model="playerName" placeholder="Your name" class="name-input" @keyup.enter="confirmName">
+                            <button class="btn-primary" @click="confirmName">Start Quiz</button>
+                        </div>
+                    </div>
+
+                    <!-- Hub -->
+                    <div v-if="quizState === 'hub'">
+                        <div class="quiz-banner">
+                            <h2>&#x270D; Test Your Air Quality Knowledge</h2>
+                            <p>Take quizzes and earn points. Compete on the leaderboard!</p>
+                            <p v-if="playerName" class="player-greeting">Playing as: <strong>{{ playerName }}</strong> <a href="#" @click.prevent="playerName=''" style="color:#93C5FD;margin-left:8px;">(change)</a></p>
+                        </div>
+                        <div class="quiz-grid">
+                            <div class="card quiz-topic-card" v-for="t in quizTopics" :key="t.topic_id">
+                                <div class="topic-header" :style="{ borderLeftColor: t.icon_color }">
+                                    <h3>{{ t.title }}</h3><span class="difficulty-badge" :class="t.difficulty.toLowerCase()">{{ t.difficulty }}</span>
+                                </div>
+                                <p class="topic-desc">{{ t.description }}</p>
+                                <div class="topic-meta"><span>{{ t.question_count }} Qs</span><span>{{ t.time_minutes }} min</span><span class="points-badge">+{{ t.points_available }} pts</span></div>
+                                <button class="btn-primary" @click="requestStartQuiz(t.topic_id)">Start Quiz</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Quiz -->
+                    <div v-if="quizState === 'active'" class="active-quiz">
+                        <div class="quiz-progress">
+                            <span>Question {{ currentQuestionIdx + 1 }} of {{ quizQuestions.length }}</span>
+                            <div class="progress-bar"><div class="progress-fill" :style="{ width: ((currentQuestionIdx+1)/quizQuestions.length*100)+'%' }"></div></div>
+                        </div>
+                        <div class="card question-card" v-if="currentQuestion">
+                            <h3>{{ currentQuestion.question_text }}</h3>
+                            <div class="options-list">
+                                <button v-for="opt in ['A','B','C','D']" :key="opt" class="option-btn"
+                                    :class="{ selected: quizAnswers[currentQuestion.question_id] === opt }"
+                                    @click="selectAnswer(currentQuestion.question_id, opt)">
+                                    <span class="opt-letter">{{ opt }}</span>
+                                    {{ currentQuestion['option_' + opt.toLowerCase()] }}
+                                </button>
+                            </div>
+                            <div class="question-nav">
+                                <button class="btn-secondary" @click="prevQ" :disabled="currentQuestionIdx===0">Previous</button>
+                                <button v-if="currentQuestionIdx < quizQuestions.length-1" class="btn-primary" @click="nextQ">Next</button>
+                                <button v-else class="btn-primary submit-btn" @click="submitQuiz">Submit Quiz</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results -->
+                    <div v-if="quizState === 'results'" class="quiz-results">
+                        <div class="card results-banner" :class="quizResult.percentage >= 80 ? 'great' : quizResult.percentage >= 50 ? 'good' : 'needs-work'">
+                            <h2>{{ quizResult.percentage >= 80 ? 'Excellent!' : quizResult.percentage >= 50 ? 'Good Effort!' : 'Keep Learning!' }}</h2>
+                            <div class="results-score">{{ quizResult.score }} / {{ quizResult.total_questions }}</div>
+                            <div class="results-pct">{{ quizResult.percentage }}%</div>
+                            <div class="results-points">+{{ quizResult.points_earned }} Points</div>
+                        </div>
+                        <div class="card">
+                            <h3>Review</h3>
+                            <div class="review-list">
+                                <div class="review-item" v-for="q in quizResult.questions_review" :key="q.question_id" :class="q.is_correct ? 'correct' : 'wrong'">
+                                    <div class="review-icon">{{ q.is_correct ? '✓' : '✗' }}</div>
+                                    <div class="review-content">
+                                        <div class="review-question">{{ q.question_text }}</div>
+                                        <div v-if="!q.is_correct" class="review-answer">Your: {{ q.options[q.user_answer] || q.user_answer }} | Correct: {{ q.options[q.correct_answer] }}</div>
+                                        <div class="review-explanation">{{ q.explanation }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="results-actions">
+                            <button class="btn-primary" @click="quizState='hub'" style="width:auto;padding:10px 28px;">Back to Quizzes</button>
+                            <button class="btn-secondary" @click="currentView='leaderboard'" style="margin-left:12px;">View Leaderboard</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ LEADERBOARD ═══ -->
+                <div v-if="currentView === 'leaderboard'">
+                    <div class="card">
+                        <h3>&#x1F3C6; Top Players</h3>
+                        <table class="leaderboard-table" v-if="leaderboard.length">
+                            <thead><tr><th>#</th><th>Player</th><th>Points</th><th>Quizzes</th><th>Avg Score</th></tr></thead>
+                            <tbody>
+                                <tr v-for="p in leaderboard" :key="p.player_name" :class="{ 'is-me': p.player_name === playerName }">
+                                    <td class="rank-cell">
+                                        <span v-if="p.rank === 1" class="rank-medal gold">&#x1F947;</span>
+                                        <span v-else-if="p.rank === 2" class="rank-medal silver">&#x1F948;</span>
+                                        <span v-else-if="p.rank === 3" class="rank-medal bronze">&#x1F949;</span>
+                                        <span v-else>{{ p.rank }}</span>
+                                    </td>
+                                    <td class="player-cell">{{ p.player_name }}</td>
+                                    <td class="points-cell">{{ p.total_points }}</td>
+                                    <td>{{ p.quizzes_taken }}</td>
+                                    <td>{{ p.avg_score }}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p v-else style="text-align:center;padding:40px;color:#94A3B8;">No quiz attempts yet. Be the first!</p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

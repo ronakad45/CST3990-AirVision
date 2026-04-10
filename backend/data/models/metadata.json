@@ -1,0 +1,54 @@
+{
+  "feature_names": [
+    "day_of_week",
+    "month",
+    "day_of_year",
+    "is_weekend",
+    "season",
+    "pm25_lag_1",
+    "pm25_lag_2",
+    "pm25_lag_3",
+    "pm25_lag_4",
+    "pm25_lag_5",
+    "pm25_lag_6",
+    "pm25_lag_7",
+    "pm25_roll_mean_3",
+    "pm25_roll_mean_7",
+    "pm25_roll_std_3",
+    "pm25_roll_std_7",
+    "pm25_diff_1",
+    "pm25_diff_7",
+    "pm10_lag_1",
+    "pm10_roll_mean_3",
+    "o3_lag_1",
+    "o3_roll_mean_3"
+  ],
+  "best_model": "Linear Regression",
+  "trained_at": "2026-03-26T06:30:20.245027",
+  "results": {
+    "Linear Regression": {
+      "rmse": 12.9529,
+      "mae": 9.4513,
+      "r_squared": 0.5191,
+      "training_samples": 2840,
+      "test_samples": 711,
+      "feature_count": 22
+    },
+    "Random Forest": {
+      "rmse": 17.8333,
+      "mae": 11.4731,
+      "r_squared": 0.0885,
+      "training_samples": 2840,
+      "test_samples": 711,
+      "feature_count": 22
+    },
+    "XGBoost": {
+      "rmse": 15.3494,
+      "mae": 11.1834,
+      "r_squared": 0.3247,
+      "training_samples": 2840,
+      "test_samples": 711,
+      "feature_count": 22
+    }
+  }
+}
