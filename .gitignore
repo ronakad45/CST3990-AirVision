@@ -9,8 +9,7 @@ venv/
 .env
 
 # Database (will be recreated)
-*.db
-data/models/
+# data/models/ is included (needed for predictions)
 
 # IDE
 .vscode/
