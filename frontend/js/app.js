@@ -52,6 +52,9 @@ new Vue({
         leaderboard: [],
         playerStats: null,
 
+        // Mobile
+        showMobileMenu: false,
+
         // Loading
         loading: false,
     },

@@ -28,10 +28,26 @@
                 <a :class="{ active: currentView === 'leaderboard' }" @click="currentView='leaderboard'"><span class="nav-icon">&#x1F3C6;</span> Leaderboard</a>
             </div>
         </nav>
+        <!-- Mobile Menu -->
+            <div class="mobile-overlay" v-if="showMobileMenu" @click="showMobileMenu=false">
+                <div class="mobile-nav" @click.stop>
+                    <div class="mobile-nav-header">
+                        <h2>AIRVISION</h2>
+                        <button @click="showMobileMenu=false" class="mobile-close">&times;</button>
+                    </div>
+                    <a @click="currentView='dashboard'; showMobileMenu=false" :class="{active: currentView==='dashboard'}">Dashboard</a>
+                    <a @click="currentView='forecast'; showMobileMenu=false" :class="{active: currentView==='forecast'}">Forecast</a>
+                    <a @click="currentView='compare'; showMobileMenu=false" :class="{active: currentView==='compare'}">Compare Cities</a>
+                    <a @click="currentView='trends'; showMobileMenu=false" :class="{active: currentView==='trends'}">Trends</a>
+                    <a @click="currentView='quiz'; showMobileMenu=false" :class="{active: currentView==='quiz'}">Quiz & Learn</a>
+                    <a @click="currentView='leaderboard'; showMobileMenu=false" :class="{active: currentView==='leaderboard'}">Leaderboard</a>
+                </div>
+            </div>
 
         <!-- MAIN -->
         <main class="main-content">
-            <header class="topbar">
+           <header class="topbar">
+                <button class="mobile-menu-btn" @click="showMobileMenu = !showMobileMenu">&#9776;</button>
                 <h1 class="page-title">{{ pageTitle }}</h1>
                 <select v-model="selectedCity" class="city-select" @change="onCityChange">
                     <option v-for="city in cities" :value="city">{{ city }}</option>
