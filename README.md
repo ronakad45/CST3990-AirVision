@@ -39,7 +39,7 @@ cd airvision
 
 ### Step 2: Set Up the Backend
 
-```bash
+
 # Open Command Prompt and navigate to the backend folder
 cd airvision\backend
 
@@ -54,60 +54,59 @@ venv\Scripts\activate
 
 # Install all Python dependencies
 pip install -r requirements.txt
-```
+
 
 ### Step 3: Configure Environment Variables
 
-```bash
+
 # Copy the example environment file
 copy .env.example .env
 
 # Open .env in a text editor (Notepad, VS Code, etc.) and fill in:
 # - Your OpenAQ API key
 # - Your OpenWeather API key (optional, get one from https://openweathermap.org/api)
-```
 
 ### Step 4: Initialise the Database
 
-```bash
+
 # Make sure you're in the backend folder with venv activated
 python -m app.database
 
 # This creates the SQLite database file: backend/data/airvision.db
 # You should see: "Database tables created successfully!"
-```
+
 
 ### Step 5: Collect Air Quality Data
 
-```bash
+
 # Fetch historical data from OpenAQ (this may take a few minutes)
 python -m app.services.data_collector
 
 # You should see progress messages as data is fetched for each city
-```
+
 
 ### Step 6: Train ML Models
 
-```bash
+
 # Train all three models and see comparison results
 python -m app.ml.trainer
 
 # This will output RMSE, MAE, and R² for each model
-```
+
 
 ### Step 7: Start the Backend Server
 
-```bash
+
 # Start the FastAPI server
 uvicorn app.main:app --reload --port 8000
 
 # The API will be available at: http://localhost:8000
 # API docs (Swagger): http://localhost:8000/docs
-```
+
 
 ### Step 8: Set Up the Frontend
 
-```bash
+
 # Open a NEW Command Prompt window
 cd airvision\frontend
 
@@ -118,12 +117,12 @@ npm install
 npm run dev
 
 # The dashboard will be available at: http://localhost:5173
-```
+
 
 ---
 
 ## Project Structure
-```
+
 airvision/
 ├── README.md
 ├── backend/
@@ -173,7 +172,7 @@ airvision/
 │       ├── views/
 │       ├── components/
 │       └── assets/
-```
+
 
 ## API Endpoints Summary
 | Method | Endpoint | Description |
