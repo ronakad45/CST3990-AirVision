@@ -1,9 +1,8 @@
-"""
-AirVision Data Preprocessing Service - Fixed for sparse pollutant data
 
-Key fix: Only creates features from pollutants that actually have data.
-Skips cross-pollutant features for columns that are entirely missing.
-"""
+# AirVision Data Preprocessing Service - Fixed for sparse pollutant data
+
+#Key fix: Only creates features from pollutants that actually have data.
+# Skips cross-pollutant features for columns that are entirely missing.
 
 import pandas as pd
 import numpy as np
@@ -75,7 +74,7 @@ def engineer_features(df: pd.DataFrame, target_col: str = "pm25") -> pd.DataFram
 
     features = df.copy()
 
-    # ─── TEMPORAL FEATURES ───
+    # TEMPORAL FEATURES 
     if "timestamp" in features.columns:
         features["day_of_week"] = features["timestamp"].dt.dayofweek
         features["month"] = features["timestamp"].dt.month
@@ -86,21 +85,21 @@ def engineer_features(df: pd.DataFrame, target_col: str = "pm25") -> pd.DataFram
              6: 3, 7: 3, 8: 3, 9: 4, 10: 4, 11: 4}
         )
 
-    # ─── LAGGED TARGET FEATURES ───
+    #  LAGGED TARGET FEATURES
     for lag in range(1, 8):
         features[f"{target_col}_lag_{lag}"] = features[target_col].shift(lag)
 
-    # ─── ROLLING STATISTICS ───
+    #  ROLLING STATISTICS 
     features[f"{target_col}_roll_mean_3"] = features[target_col].rolling(3).mean()
     features[f"{target_col}_roll_mean_7"] = features[target_col].rolling(7).mean()
     features[f"{target_col}_roll_std_3"] = features[target_col].rolling(3).std()
     features[f"{target_col}_roll_std_7"] = features[target_col].rolling(7).std()
 
-    # ─── RATE OF CHANGE ───
+    # RATE OF CHANGE 
     features[f"{target_col}_diff_1"] = features[target_col].diff(1)
     features[f"{target_col}_diff_7"] = features[target_col].diff(7)
 
-    # ─── CROSS-POLLUTANT FEATURES (only for columns with >50% data) ───
+    # CROSS-POLLUTANT FEATURES (only for columns with >50% data)
     other_pollutants = ["pm25", "pm10", "no2", "o3", "co", "so2"]
     for col in other_pollutants:
         if col == target_col:
@@ -115,10 +114,10 @@ def engineer_features(df: pd.DataFrame, target_col: str = "pm25") -> pd.DataFram
         features[f"{col}_lag_1"] = features[col].shift(1)
         features[f"{col}_roll_mean_3"] = features[col].rolling(3).mean()
 
-    # ─── TARGET: next-day value ───
+    #  TARGET: next-day value 
     features["target"] = features[target_col].shift(-1)
 
-    # ─── CLEANUP ───
+    # CLEANUP 
     # Drop timestamp (not numeric)
     if "timestamp" in features.columns:
         features = features.drop(columns=["timestamp"])

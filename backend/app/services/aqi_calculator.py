@@ -2,12 +2,6 @@
 AirVision AQI Calculator
 Calculates the Air Quality Index (AQI) from pollutant concentrations
 using the US EPA breakpoint methodology.
-
-The AQI is computed per-pollutant using linear interpolation between
-breakpoint values. The overall AQI is the maximum of all individual
-pollutant AQIs.
-
-Reference: US EPA Technical Assistance Document for AQI Reporting (2024)
 """
 
 
@@ -70,11 +64,8 @@ AQI_BREAKPOINTS = {
 def calculate_pollutant_aqi(pollutant: str, concentration: float) -> int:
     """
     Calculate the AQI for a single pollutant given its concentration.
-
-    Args:
-        pollutant: One of 'pm25', 'pm10', 'no2', 'o3', 'co', 'so2'
-        concentration: The measured concentration value
-
+    the pollutant: One of 'pm25', 'pm10', 'no2', 'o3', 'co', 'so2'
+    concentration: The measured concentration value
     Returns:
         Integer AQI value (0–500), or -1 if invalid
     """
@@ -98,20 +89,7 @@ def calculate_pollutant_aqi(pollutant: str, concentration: float) -> int:
 
 
 def calculate_overall_aqi(pm25=None, pm10=None, no2=None, o3=None, co=None, so2=None) -> int:
-    """
-    Calculate the overall AQI as the maximum of individual pollutant AQIs.
 
-    Args:
-        pm25: PM2.5 concentration in µg/m³
-        pm10: PM10 concentration in µg/m³
-        no2: NO₂ concentration in ppb
-        o3: O₃ concentration in ppb
-        co: CO concentration in ppm
-        so2: SO₂ concentration in ppb
-
-    Returns:
-        Overall AQI integer value, or 0 if no valid pollutants provided
-    """
     pollutant_values = {
         "pm25": pm25,
         "pm10": pm10,

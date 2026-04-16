@@ -196,8 +196,8 @@ def fetch_daily_data(sensor_id, date_from=None, date_to=None):
     return all_records
 
 
-# ─── MAIN COLLECTION ───
 
+# MAIN COLLECTION
 def collect_historical_data(days_back: int = 365):
     """Fetch historical daily AQ data for all target cities."""
     print("=" * 60)
