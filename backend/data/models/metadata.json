@@ -24,30 +24,30 @@
     "o3_roll_mean_3"
   ],
   "best_model": "Linear Regression",
-  "trained_at": "2026-03-26T06:30:20.245027",
+  "trained_at": "2026-04-24T13:32:53.476171",
   "results": {
     "Linear Regression": {
-      "rmse": 12.9529,
-      "mae": 9.4513,
-      "r_squared": 0.5191,
-      "training_samples": 2840,
-      "test_samples": 711,
+      "rmse": 12.9087,
+      "mae": 9.464,
+      "r_squared": 0.5225,
+      "training_samples": 2930,
+      "test_samples": 733,
       "feature_count": 22
     },
     "Random Forest": {
-      "rmse": 17.8333,
-      "mae": 11.4731,
-      "r_squared": 0.0885,
-      "training_samples": 2840,
-      "test_samples": 711,
+      "rmse": 18.3004,
+      "mae": 11.6252,
+      "r_squared": 0.0404,
+      "training_samples": 2930,
+      "test_samples": 733,
       "feature_count": 22
     },
     "XGBoost": {
-      "rmse": 15.3494,
-      "mae": 11.1834,
-      "r_squared": 0.3247,
-      "training_samples": 2840,
-      "test_samples": 711,
+      "rmse": 14.8633,
+      "mae": 11.0638,
+      "r_squared": 0.367,
+      "training_samples": 2930,
+      "test_samples": 733,
       "feature_count": 22
     }
   }
